@@ -198,7 +198,7 @@ def handle_api_exception(
     except json.JSONDecodeError:
         body = {}
 
-    message = body["message"] if "message" in body else None
+    message = body.get("message") if isinstance(body, dict) else None
     if message is None and e.status_code not in (401, 429, 503):
         err = default_exception_class(f"{e.status_code}: {e.content}").with_traceback(
             stack_trace
