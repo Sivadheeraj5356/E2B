@@ -71,3 +71,15 @@ def test_rate_limit_carries_429():
 
     assert isinstance(err, RateLimitException)
     assert err.status_code == 429
+
+
+def test_non_object_json_error_body_does_not_crash_the_mapper():
+    # https://github.com/e2b-dev/e2b/issues/1880 - a valid JSON body that is not
+    # an object (null, number, boolean, string, array) must not crash the
+    # mapper; the generic status error carries the raw content instead.
+    for content in (b"null", b"123", b"true", b'"oops"', b"[1, 2]"):
+        err = handle_api_exception(response(500, content))
+
+        assert isinstance(err, SandboxException)
+        assert err.status_code == 500
+        assert str(err) == f"500: {content!r}"
